@@ -61,6 +61,9 @@ Item {
                 return this.items.shift()[1];
             }
         },
+        "clear": function () {
+            this.items = [];
+        },
         "empty": function () {
             return this.items.length == 0;
         },
@@ -94,6 +97,9 @@ Item {
     property var costs: {
         "0,1": 0,
     }
+    property var cameFrom: {
+        "0,1": [0, 1],
+    }
 
     Component.onCompleted: {
         queue.put(0, [0, 1]);  // start with "start" node
@@ -109,14 +115,26 @@ Item {
         return Math.abs(endX - next[0]) + Math.abs(endY - next[1]);
     }
 
+    property int steps: 0;
     function step() {
         if (queue.empty()) {
             return;
         }
+        steps++;
         var current = queue.get();
         var currentX = current[0];
         var currentY = current[1];
         current = grid[currentX][currentY];
+        if (current.end) {
+            queue.clear();
+            path = [current.position];
+            while (!current.start) {
+                current = grid[cameFrom[current.position][0]][cameFrom[current.position][1]];
+                path.splice(0, 0, current.position);
+            }
+            pathChanged();
+            return;
+        }
         neighbors(currentX, currentY).forEach(function (item) {
             var next = grid[item[0]][item[1]];
             var newCost = costs[current.position] + cost([currentX, currentY], item);
@@ -125,8 +143,40 @@ Item {
                 costsChanged();
                 var priority = newCost + heuristic(item);
                 queue.put(priority, item);
+                cameFrom[next.position] = [currentX, currentY];
+                cameFromChanged();
             }
         });
+    }
+
+    Timer {
+        id: stepTimer
+        running: false
+        repeat: true
+        interval: 200
+
+        onTriggered: {
+            step();
+            if (queue.empty()) {
+                stepTimer.stop();
+            }
+        }
+    }
+
+    Text {
+        text: "Steps: %1".arg(steps)
+
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.margins: 10
+    }
+
+    Text {
+        text: "Path: %1".arg(path.length)
+
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 10
     }
 
     Grid {
@@ -141,6 +191,27 @@ Item {
                 property int gridX: index % grid.length
                 property int gridY: index / grid.length
                 property var cell: grid[gridX][gridY]
+                property string cameSide: {
+                    if (!(cell.position in cameFrom)) {
+                        return "";
+                    }
+                    var cameX = cameFrom[cell.position][0];
+                    var cameY = cameFrom[cell.position][1];
+                    if (cameX < gridX) {
+                        return "left";
+                    }
+                    if (cameY < gridY) {
+                        return "top";
+                    }
+                    if (cameX > gridX) {
+                        return "right";
+                    }
+                    if (cameY > gridY) {
+                        return "bottom";
+                    }
+                    return "";
+                }
+
                 width: 40
                 height: 40
                 border.width: 1
@@ -157,6 +228,27 @@ Item {
                     } else {
                         return "black";
                     }
+                }
+
+                Rectangle {
+                    x: switch (cameSide) {
+                        case "top": return 18;
+                        case "bottom": return 18;
+                        case "left": return 1;
+                        case "right": return 35;
+                        default: return 18;
+                    }
+                    y: switch (cameSide) {
+                        case "top": return 1;
+                        case "bottom": return 35;
+                        case "left": return 18;
+                        case "bottom": return 18;
+                        default: return 18;
+                    }
+                    width: 4
+                    height: 4
+                    color: "red"
+                    visible: cell.passable && cell.position in cameFrom
                 }
 
                 Text {
@@ -178,20 +270,17 @@ Item {
         }
     }
 
-    RowLayout {
+    Row {
         spacing: 10
 
         anchors.bottom: parent.bottom
-        anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 10
 
         Button {
-            text: "Prev Step"
-        }
+            text: stepTimer.running ? "Stop" : "Play"
 
-        Slider {
-            Layout.fillWidth: true
+            onClicked: stepTimer.running ? stepTimer.stop() : stepTimer.start()
         }
 
         Button {
