@@ -1,0 +1,55 @@
+Exercises:
+1.2-1: Give an example of an application that requires algorithmic content at
+       the application level, and discuss the function of the algorithms involved.
+
+* A fulfillment/distribution management software will need to use algorithms
+  to calculate how much product to send, where to send it, and when to send it.
+  You would have shortest-path style algorithms that would work on sets of
+  nodes, maybe distribution centers, and routing trucks between them efficiently.
+  Then you'd also have sorting and fitting algorithms that would make sure the
+  trucks were filled as much as possible and that things like perishable goods
+  were shipped before they expire.
+
+1.2-2: Suppose we are comparing implementations of insertion sort and merge sort
+       on the same machine. For inputs of size n, insertion sort runs in 8*n**2
+       steps, while merge sort runs in 64*n*log(n) steps. For which values of n
+       does insertion sort beat merge sort?
+
+* 8*n**2 = 64*n*log(n, 2), experimentally (I just dumped numbers in...) it is
+  ~43 items.
+
+1.2-3: What is the smallest value of n such that an algorithm whose running
+       time is 100*n**2 runs faster than an algorithm whose running time is
+       2**n on the same machine?
+
+* 100*n**2 = 2**n, ~15
+
+
+Problems:
+1-1: Comparison Of Running Times
+     For each function f(n) and time t in the following table, determine the
+     largest size n of a problem that can be solved in time t, assuming that
+     the algorithm to solve the problem takes f(n) microseconds.
+
+log(n, 2) = 1000      sqrt(n) = 1000        n*log(n, 2) = 1000
+       n  = 2**1000        n  = 1000**2        n*log(n) = 1000*log(2)
+
+
+            | 1 second | 1 minute | 1 hour | 1 day | 1 month | 1 year | 1 century |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+     log(n) |  2**1000 |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+    sqrt(n) |  1000**2 |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+         n  |  1000    |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+   n*log(n) |          |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+      n**2  |          |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+      n**3  |          |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+      2**n  |          |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
+        n!  |          |          |        |       |         |        |           |
+------------|----------|----------|--------|-------|---------|--------|-----------|
